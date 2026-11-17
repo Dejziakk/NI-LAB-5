@@ -1,6 +1,7 @@
 from src.models import Apartment
 from src.manager import Manager
 from src.models import Parameters
+import pytest 
 
 
 def test_load_data():
@@ -30,3 +31,15 @@ def test_if_tenants_have_valid_apartment_keys():
 
     manager.tenants['tenant-1'].apartment = 'invalid-key'
     assert manager.check_tenants_apartment_keys() == False
+    
+def test_get_apartment_costs():
+    parameters = Parameters()
+    manager = Manager(parameters)
+
+    assert manager.get_apartment_costs("apart-polanka", 2025, 1) == 910.0
+    assert manager.get_apartment_costs("apart-polanka", 2025, 2) == 0.0
+    assert manager.get_apartment_costs("apart-polanka", 2025) == 910.0
+    assert manager.get_apartment_costs("apart-polanka") == 910.0
+    assert manager.get_apartment_costs("brak-mieszkania", 2025, 1) == None
+    with pytest.raises(ValueError):
+        manager.get_apartment_costs("apart-polanka", 2025, 13)
