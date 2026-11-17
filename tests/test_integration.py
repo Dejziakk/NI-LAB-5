@@ -1,4 +1,4 @@
-from src.models import Apartment, ApartmentSettlement
+from src.models import Apartment, ApartmentSettlement, TenantSettlement
 from src.manager import Manager
 from src.models import Parameters
 import pytest 
@@ -71,3 +71,39 @@ def test_create_apartment_settlement():
     assert manager.create_apartment_settlement("brak-mieszkania", 2025, 1) is None
     with pytest.raises(ValueError):
         manager.create_apartment_settlement("apart-polanka", 2025, 13)
+
+
+def test_create_tenant_settlements():
+    parameters = Parameters()
+    manager = Manager(parameters)
+    settlement = manager.create_apartment_settlement("apart-polanka", 2025, 1)
+
+    tenant_settlements = manager.create_tenant_settlements(settlement)
+    assert len(tenant_settlements) == 3
+    assert isinstance(tenant_settlements[0], TenantSettlement)
+    assert tenant_settlements[0].tenant == "tenant-1"
+    assert tenant_settlements[0].month == 1
+    assert tenant_settlements[0].year == 2025
+    assert tenant_settlements[0].bills_pln == pytest.approx(910.0 / 3)
+    assert tenant_settlements[0].balance_pln == pytest.approx(-910.0 / 3)
+    assert tenant_settlements[1].bills_pln == pytest.approx(910.0 / 3)
+    assert tenant_settlements[2].bills_pln == pytest.approx(910.0 / 3)
+
+    del manager.tenants["tenant-3"]
+    two_tenants_settlements = manager.create_tenant_settlements(settlement)
+    assert len(two_tenants_settlements) == 2
+    assert two_tenants_settlements[0].bills_pln == 455.0
+    assert two_tenants_settlements[1].bills_pln == 455.0
+    assert two_tenants_settlements[0].balance_pln == -455.0
+
+    del manager.tenants["tenant-2"]
+    one_tenant_settlements = manager.create_tenant_settlements(settlement)
+    assert len(one_tenant_settlements) == 1
+    assert one_tenant_settlements[0].tenant == "tenant-1"
+    assert one_tenant_settlements[0].bills_pln == 910.0
+    assert one_tenant_settlements[0].balance_pln == -910.0
+
+    del manager.tenants["tenant-1"]
+    no_tenants_settlements = manager.create_tenant_settlements(settlement)
+    assert len(no_tenants_settlements) == 0
+    assert no_tenants_settlements == []
