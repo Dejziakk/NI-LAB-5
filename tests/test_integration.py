@@ -1,4 +1,4 @@
-from src.models import Apartment
+from src.models import Apartment, ApartmentSettlement
 from src.manager import Manager
 from src.models import Parameters
 import pytest 
@@ -43,3 +43,31 @@ def test_get_apartment_costs():
     assert manager.get_apartment_costs("brak-mieszkania", 2025, 1) == None
     with pytest.raises(ValueError):
         manager.get_apartment_costs("apart-polanka", 2025, 13)
+
+
+def test_create_apartment_settlement():
+    parameters = Parameters()
+    manager = Manager(parameters)
+
+    settlement = manager.create_apartment_settlement("apart-polanka", 2025, 1)
+
+    assert settlement is not None
+    assert isinstance(settlement, ApartmentSettlement)
+    assert settlement.apartment == "apart-polanka"
+    assert settlement.year == 2025
+    assert settlement.month == 1
+    assert settlement.total_bills_pln == 910.0
+    assert settlement.balance_pln == -910.0
+
+    empty_settlement = manager.create_apartment_settlement("apart-polanka", 2025, 2)
+
+    assert empty_settlement is not None
+    assert empty_settlement.apartment == "apart-polanka"
+    assert empty_settlement.year == 2025
+    assert empty_settlement.month == 2
+    assert empty_settlement.total_bills_pln == 0.0
+    assert empty_settlement.balance_pln == 0.0
+
+    assert manager.create_apartment_settlement("brak-mieszkania", 2025, 1) is None
+    with pytest.raises(ValueError):
+        manager.create_apartment_settlement("apart-polanka", 2025, 13)

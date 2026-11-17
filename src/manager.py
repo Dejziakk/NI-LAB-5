@@ -1,4 +1,4 @@
-from src.models import Apartment, Bill, Parameters, Tenant, Transfer
+from src.models import Apartment, ApartmentSettlement, Bill, Parameters, Tenant, Transfer
 
 
 class Manager:
@@ -41,3 +41,25 @@ class Manager:
                 total += bill.amount_pln
 
         return total
+
+    def create_apartment_settlement(self, apartment_key: str, year: int, month: int):
+        if apartment_key not in self.apartments:
+            return None
+
+        if month < 1 or month > 12:
+            raise ValueError("Miesiąc musi być z przedziału 1-12")
+
+        total_bills = self.get_apartment_costs(apartment_key, year, month)
+        total_transfers = 0.0
+        balance = total_transfers - total_bills
+
+        settlement = ApartmentSettlement(
+            apartment=apartment_key,
+            month=month,
+            year=year,
+            total_rent_pln=0.0,
+            total_bills_pln=total_bills,
+            total_due_pln=total_bills,
+            balance_pln=balance
+        )
+        return settlement
